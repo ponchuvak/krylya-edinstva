@@ -255,10 +255,28 @@ footer ul{margin:0;padding:0;list-style:none;display:grid;gap:5px}
   .hero-line p{grid-column:2}
 }
 @media print{
-  body::before,.hero,.tabs,main,footer,.skip{display:none!important}
-  body{background:#fff;color:#000}
-  .certificate{display:block!important;border:3px double #8a6d1d;background:#fff;color:#111;max-width:760px;margin:24px auto;padding:44px}
-  .certificate h3,.certificate .cert-name,.certificate .cert-score{color:#111}
+  @page{size:A4 landscape;margin:8mm}
+  html,body{background:#fff!important;color:#111!important}
+  /* Прячем всё лишнее, но оставляем цепочку main → квиз → результат → сертификат */
+  body::before,.skip,.hero,.tabs,footer,
+  main > section:not(#quiz),
+  #quiz > .hall-head,#quiz > .rule,
+  #quiz-card > :not(#quiz-result),
+  #quiz-result > :not(.certificate){display:none!important}
+  #quiz,#quiz-card,#quiz-result{
+    display:block!important;margin:0!important;padding:0!important;
+    border:0!important;background:none!important;
+    opacity:1!important;transform:none!important;max-width:none!important;
+  }
+  .certificate{
+    display:block!important;width:100%!important;max-width:none!important;
+    margin:0!important;padding:32px 40px!important;
+    border:3px double #8a6d1d!important;background:#fff!important;color:#111!important;
+    opacity:1!important;transform:none!important;
+  }
+  .certificate h3,.certificate .cert-name,.certificate .cert-score{color:#111!important}
+  .certificate .cert-kicker,.certificate .cert-foot,.certificate .cert-line{color:#333!important}
+  .certificate .star path{fill:#8a6d1d!important}
 }
 </style>
 </head>
@@ -753,15 +771,20 @@ qNext.addEventListener('click',()=>{
   if(state.i<QUIZ.length-1){state.i++;render();}
   else finish();
 });
-$('#r-cert').addEventListener('click',()=>{
+function fillCertificate(){
   const name=$('#r-name').value.trim()||'Участник музея';
   $('#cert-name').textContent=name;
   $('#cert-score').textContent=state.score;
   const d=new Date();
   $('#cert-date').textContent='Дата: '+d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})+' · Интерактивный музей «Крылья единства»';
-  const cert=$('#certificate');cert.classList.add('show');
-  cert.scrollIntoView({behavior:'smooth',block:'center'});
+  $('#certificate').classList.add('show');
+}
+$('#r-cert').addEventListener('click',()=>{
+  fillCertificate();
+  $('#certificate').scrollIntoView({behavior:'smooth',block:'center'});
 });
+// Ctrl+P тоже должен печатать заполненный сертификат
+window.addEventListener('beforeprint',fillCertificate);
 $('#r-print').addEventListener('click',()=>{
   if(!$('#certificate').classList.contains('show')){
     $('#r-cert').click();
